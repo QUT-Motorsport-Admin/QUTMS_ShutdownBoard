@@ -6,7 +6,5 @@ AtmelCAN.c
 
 main.c
 
-MCP2515.c
-
 SPI.c
 

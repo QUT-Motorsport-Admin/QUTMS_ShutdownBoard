@@ -39,7 +39,6 @@ SUBDIRS :=
 C_SRCS +=  \
 ../AtmelCAN.c \
 ../main.c \
-../MCP2515.c \
 ../SPI.c
 
 
@@ -52,25 +51,21 @@ ASM_SRCS +=
 OBJS +=  \
 AtmelCAN.o \
 main.o \
-MCP2515.o \
 SPI.o
 
 OBJS_AS_ARGS +=  \
 AtmelCAN.o \
 main.o \
-MCP2515.o \
 SPI.o
 
 C_DEPS +=  \
 AtmelCAN.d \
 main.d \
-MCP2515.d \
 SPI.d
 
 C_DEPS_AS_ARGS +=  \
 AtmelCAN.d \
 main.d \
-MCP2515.d \
 SPI.d
 
 OUTPUT_FILE_PATH +=QUTMS_ShutdownBoard.elf
@@ -95,13 +90,6 @@ LINKER_SCRIPT_DEP+=
 	
 
 ./main.o: .././main.c
-	@echo Building file: $<
-	@echo Invoking: AVR/GNU C Compiler : 5.4.0
-	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.1.130\include"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega64m1 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.1.130\gcc\dev\atmega64m1" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
-	@echo Finished building: $<
-	
-
-./MCP2515.o: .././MCP2515.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -funsigned-char -funsigned-bitfields -DDEBUG  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.1.130\include"  -O1 -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -mmcu=atmega64m1 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.1.130\gcc\dev\atmega64m1" -c -std=gnu99 -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
