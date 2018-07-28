@@ -1,0 +1,5 @@
+MCP2515.o: MCP2515.c SPI.h MCP2515.h
+
+SPI.h:
+
+MCP2515.h:
