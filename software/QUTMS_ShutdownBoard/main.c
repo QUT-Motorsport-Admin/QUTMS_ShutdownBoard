@@ -14,26 +14,34 @@
 
 #include "main.h"
 
+#define LED1ON     PORTD |= 1<<PIND5
+#define LED1OFF    PORTD &= 1<<PIND5
+#define LED1TOGGLE PORTD ^= 1<<PIND5
+#define LED2ON     PORTB |= 1<<PINB4
+#define LEF2OFF    PORTB &= 1<<PINB4
+#define LED2TOGGLE PORTB ^= 1<<PINB4
 
+#define CC	 	0b01000000000000000000000000000
+#define CCmsk		0b01000000000000000000000000000
 
 void IO_init()
 {
-	DDRD  = 0b00000000;
+	DDRD  = 0b00100000;
 	PORTD |= (1<<PIND1)|(1<<PIND0);
 	
-	DDRB  = 0b00000000;
+	DDRB  = 0b00010000;
 	PORTB |= (1<<PINB7)|(1<<PINB6)|(1<<PINB5)|(1<<PINB2);
 	
-	DDRC  = 0b00000000;
+	DDRC  = 0b00010000;
 	PORTC |= (1<<PINC7)|(1<<PINC6)|(1<<PINC5)|(1<<PINC0);
 }
 
-void timer_init()
-{
-	TCCR0A = 0x00;							//normal mode.
-	TCCR0B = (1<<CS02)|(0<<CS01)|(1<<CS00);	//prescale clock by 1024
-	TIMSK0 = (1<<TOIE0);					//allow interrupts
-}
+//void timer_init()
+//{
+	//TCCR0A = 0x00;							//normal mode.
+	//TCCR0B = (1<<CS02)|(0<<CS01)|(1<<CS00);	//prescale clock by 1024
+	//TIMSK0 = (1<<TOIE0);					//allow interrupts
+//}
 
 void ADC_init()
 {
@@ -54,8 +62,6 @@ uint16_t ADC_read(uint8_t channel)
 	ADCSRA|=(1<<ADIF);							//once read and done, clear the 'complete' status by writing 1 to the ADIF bit.
 	return result;								//pass the 10 bit ADC number to requesting function.
 }
-
-
 
 uint16_t SHUTDOWN_getBoardTemp() {
 	return ADC_read(SHDN_TEMP_CH); // Get status of the SHDN_TEMP
@@ -115,19 +121,25 @@ int main(void)
 	_delay_ms(10);
 	IO_init();
 	_delay_ms(50);
-	SPI_init();
+	//SPI_init();
 	CAN_init();	//enable this for AVR CAN
-	timer_init();
+	//timer_init();
+	
+	CAN_RXInit(1, 8, 0xffffffff,0x8800001);
 	
 	sei();
 	
     // Loop forever
     while(1)
-    {}
+    {
+
+	}
 }
 
 ISR(CAN_INT_vect)
 {
+	LED1TOGGLE;
+	
 	//CANIDT4 is l
 	if(CANSIT2 & (1 << SIT5))	//we received a CAN message on mob 5, which is set up to receive exclusively from the Chassis controller.
 	{
@@ -137,6 +149,8 @@ ISR(CAN_INT_vect)
 		{
 			// The Chassis controller has sent a heartbeat packet
 			// Return it, along with the current shutdown loop information
+			
+			LED2TOGGLE;
 			
 			uint16_t loopStatus = SHUTDOWN_getLoopStatus();
 			uint16_t tempStatus = SHUTDOWN_getBoardTemp();
@@ -152,38 +166,23 @@ ISR(CAN_INT_vect)
 			status[5] = (tempStatus >> 8);
 			status[6] = (loopStatus);
 			status[7] = (loopStatus >> 8);
+
 			
-			CAN_TXMOB(5, 8, status, 0b00000100000000000000000000000, 0);
+			//uint8_t mob = CAN_findFreeTXMOB();
+			//CAN_TXMOB(mob, 8, status, 0x03000001, 0);
+			
+			CAN_RXInit(1, 8, 0xffffffff, 0x8800001);
 		}
-		//if((CANIDT1 == ((1<<6)|(1<<4))) && (CANIDT2==deviceID) && ((CANIDT4>>3)==CC_MODE_CHANGE) )	//if the received ID has a mode change packet
-		//{
-			//uint16_t modeAddress =	CANMSG<<8;	//byte 0
-			//modeAddress |= CANMSG;				//byte 1
-			//uint16_t modeValue	=	CANMSG<<8;	//byte 2
-			//modeValue  |= CANMSG;				//byte 3
-			//switch(modeAddress)
-			//{
-				//case 1:
-					//if(modeValue)
-						//STATUS_REG |= MODE_BALANCING;
-					//else
-						//STATUS_REG &= ~MODE_BALANCING;
-					//break;
-				//case 2:
-					//break;
-					////add functionality for changing scanning frequency
-				//default:
-					//break;
-			//}
-		//}
 	}
 	CANPAGE = (5 << 4);			//set the canpage to the receiver MOB
 	CANSTMOB &= ~(1 << RXOK);	//unset the RXOK bit to clear the interrupt.
+	
+	
 }
 
 ISR(TIMER0_OVF_vect)
 {
-	
+
 }
 
 
