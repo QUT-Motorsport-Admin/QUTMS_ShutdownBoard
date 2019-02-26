@@ -6,6 +6,21 @@
  */ 
 #include "AtmelCAN.h"
 
+ void uDelay(unsigned int l)
+ {
+	 while(l--);
+ }
+
+ void Delay(unsigned int n)
+ {
+	 unsigned int k;
+
+	 for(k=0;k<n;k++)
+	 {
+		 uDelay(1120);
+	 }
+ }
+
 int8_t CAN_sendTest()
 {
 	uint8_t tData [2] = {111,111};
@@ -44,6 +59,7 @@ uint8_t CAN_init()
 
 	// Enable CANBUS
 	CANGCON = (1 << ENASTB);
+	Delay(50);
 	// Wait for CANBUS peripheral to operate
 	if(!(CANGSTA & (1<<ENFG)))return 1;
 	return 0;
@@ -55,7 +71,7 @@ void CAN_RXInit(int8_t mob, uint8_t numBytes, uint32_t IDmsk, uint32_t ID)
 	//IDEMSK is sent with the CAN packet, we choose to not require that it be set, and instead focus on ID match
 	CANIDM4 = (IDmsk<<03) & 0xF8;	//shifts the value sets RTRMSK to zero and IDEMSK to 0
 	CANIDM3 = (IDmsk>>05) & 0xFF;
-	CANIDM2 = (IDmsk>>13) & 0xFF;	
+	CANIDM2 = (IDmsk>>13) & 0xFF;
 	CANIDM1 = (IDmsk>>21) & 0xFF;
 	
 	CANIDT4 = (ID<<03) & 0xF8;	//shifts the value sets RTRTAG, RB1TAG and RB0TAG to 0
@@ -72,13 +88,16 @@ void CAN_TXMOB(int8_t mob, uint8_t numBytes, uint8_t * data, uint32_t ID, uint8_
 	CANPAGE = ( mob << 4); // Set the mob to use for transmission, to the one that is given
 	//IDEMSK is sent with the CAN packet, we choose to not set it, and instead the receiver will focus on ID match
 	
-	CANSTMOB &= ~(1<<TXOK); // 
+	CANSTMOB &= ~(1<<TXOK); //
+	CANIDM4 = 0;
 	
+	/*
 	// Clears the 29/11 bit mask
 	CANIDM4 = 0x00;
 	CANIDM3 = 0x00;
 	CANIDM2 = 0x00;
 	CANIDM1 = 0x00;
+	*/
 	
 	// Set the 29 bit mask
 	CANIDT4 = (ID<<03) & 0xF8;	//shifts the value and sets RTRTAG, RB1TAG and RB0TAG
