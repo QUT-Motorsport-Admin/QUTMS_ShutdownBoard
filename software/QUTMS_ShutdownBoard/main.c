@@ -21,8 +21,6 @@
 #define LEF2OFF    PORTB &= 1<<PINB4
 #define LED2TOGGLE PORTB ^= 1<<PINB4
 
-uint16_t getDataFromCAN = 0;
-
 #define CC	 	0b01000000000000000000000000000
 #define CCmsk		0b01000000000000000000000000000
 
@@ -127,8 +125,7 @@ int main(void)
 	CAN_init();	//enable this for AVR CAN
 	//timer_init();
 	
-	//0xffffffff , 0x8800001
-	CAN_RXInit(5, 8, 0x400000,0x400000);
+	CAN_RXInit(1, 8, 0xffffffff,0x8800001);
 	
 	sei();
 	
@@ -147,14 +144,14 @@ ISR(CAN_INT_vect)
 	if(CANSIT2 & (1 << SIT5))	//we received a CAN message on mob 5, which is set up to receive exclusively from the Chassis controller.
 	{
 		CANPAGE = (5 << 4);			//set the canpage to the receiver MOB
-		
-		//if((CANIDT1 == ((1<<6)|(1<<2))) && ((CANIDT4>>3)== 0b00001) )	//if the received ID has a heartbeat packet
-		//{
+		CANSTMOB &= ~(1 << RXOK);	//unset the RXOK bit to clear the interrupt.
+		if((CANIDT1 == ((1<<6)|(1<<2))) && ((CANIDT4>>3)== 0b00001) )	//if the received ID has a heartbeat packet
+		{
 			// The Chassis controller has sent a heartbeat packet
 			// Return it, along with the current shutdown loop information
 			
 			LED2TOGGLE;
-			getDataFromCAN = CANPAGE;
+			
 			uint16_t loopStatus = SHUTDOWN_getLoopStatus();
 			uint16_t tempStatus = SHUTDOWN_getBoardTemp();
 			uint16_t V5Status = SHUTDOWN_get5VDiv();
@@ -172,15 +169,11 @@ ISR(CAN_INT_vect)
 
 			
 			//uint8_t mob = CAN_findFreeTXMOB();
-			//CAN_TXMOB(1, 8, status, 0x03000001, 0);
+			//CAN_TXMOB(mob, 8, status, 0x03000001, 0);
 			
-			//0xffffffff , 0x8800001
-			CAN_RXInit(5, 8, 0x400000,0x400000);
-		//}
+			CAN_RXInit(1, 8, 0xffffffff, 0x8800001);
+		}
 	}
-	
-	CANPAGE = (5 << 4);
-	CANSTMOB &= ~(1 << RXOK);	//unset the RXOK bit to clear the interrupt.
 	CANPAGE = (5 << 4);			//set the canpage to the receiver MOB
 	CANSTMOB &= ~(1 << RXOK);	//unset the RXOK bit to clear the interrupt.
 	

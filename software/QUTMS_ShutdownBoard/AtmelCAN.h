@@ -17,7 +17,5 @@ uint8_t CAN_init();
 int8_t CAN_findFreeTXMOB();
 void CAN_RXInit(int8_t mob, uint8_t numBytes, uint32_t IDmsk, uint32_t ID);
 void CAN_TXMOB(int8_t mob, uint8_t numBytes, uint8_t * data, uint32_t ID, uint8_t ms_loop_until_TXOK);
-void uDelay(unsigned int l);
-void Delay(unsigned int n);
 
 #endif /* ATMELCAN_H_ */
